@@ -43,29 +43,25 @@ const firebaseConfig = {
         e.preventDefault();
         e.stopPropagation();
         
-      const email = document.getElementById('signup-email').value;
-      const password = document.getElementById('signup-password').value;
-      
-      console.log("email is " + email);
-      console.log("password is " + password + ". Now sending to firebase.");
-      
-      createUserWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-      // Signed in 
-      const user = userCredential.user;
-      console.log('user successfully created: ' + user.email)
-      // ...
-    })
-    .catch((error) => {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      var errorText = document.getElementById('signup-error-message');
-      console.log(errorMessage);
-      errorText.innerHTML = errorMessage;
-      // ..
-    });
-  
-    };
+        const email = document.getElementById('signup-email').value;
+        const password = document.getElementById('signup-password').value;
+        
+        createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+            const user = userCredential.user;
+            console.log('user successfully created: ' + user.email);
+            
+            // Redirect to the desired page
+            window.location.href = "https://vintage-car-market----testing.webflow.io/app/onboarding"; // Change to your target URL
+        })
+        .catch((error) => {
+            const errorMessage = error.message;
+            var errorText = document.getElementById('signup-error-message');
+            console.log(errorMessage);
+            errorText.innerHTML = errorMessage;
+        });
+    }
+    
   
       //handle signIn
     
