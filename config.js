@@ -1,28 +1,4 @@
 <script type="module">
-    // Import the functions you need from the SDKs you need
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-    // TODO: Add SDKs for Firebase products that you want to use
-    // https://firebase.google.com/docs/web/setup#available-libraries
-  
-    // Your web app's Firebase configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyB2R6bNoBAdk9C4rvxDVu5ipEBLqu7JGjw",
-    authDomain: "green-car-4a273.firebaseapp.com",
-    projectId: "green-car-4a273",
-    storageBucket: "green-car-4a273.appspot.com",
-    messagingSenderId: "715460877679",
-    appId: "1:715460877679:web:9596b97ab4d13555195c9a",
-    measurementId: "G-9JJ02D0Q7G"
-  };
-  
-  
-    // Initialize Firebase and declare "global" variables. all variables declared in this section are accessible to functions that follow.
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-  
-    
-    
    //identify auth action forms
     let signUpForm = document.getElementById('wf-form-signup-form');
     let signInForm = document.getElementById('wf-form-signin-form');
