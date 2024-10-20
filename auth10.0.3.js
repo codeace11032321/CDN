@@ -353,7 +353,7 @@ onAuthStateChanged(auth, (user) => {
     if (user) {
         const uid = user.uid;
         privateElements.forEach(function(element) {
-            element.style.display = "initial";s
+            element.style.display = "initial";
         });
         publicElements.forEach(function(element) {
             element.style.display = "none";
