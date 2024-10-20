@@ -111,7 +111,7 @@ async function updateProfilePicture() {
 }
 
 //============================/////============================///
-// Handle sign-up
+// Handle sign-up / create account
 //============================/////============================///
 function handleSignUp(e) {
     e.preventDefault();
@@ -141,7 +141,7 @@ function handleSignUp(e) {
 }
 
 //============================/////============================///
-// Handle sign-in
+// Handle sign-in / login
 //============================/////============================///
 function handleSignIn(e) {
     e.preventDefault();
@@ -155,46 +155,31 @@ function handleSignIn(e) {
             const user = userCredential.user;
             console.log('User logged in: ' + user.email);
 
-//============================/////============================///
-// add notificataion later!!
+    
+        if (user.emailVerified) {
+            console.log("Email verified. Access granted.");
+            window.location.href = '/';
+        } else {
+            console.log("Email not verified.");
+            const uid = user.uid;
 
-            if (!user.emailVerified) {
-                console.log("Email not verified. Redirecting to email verification...");
-                // Optionally show a message to the user
-                return; // Prevent further execution
-            }
-            
-
-            if (user.emailVerified) {
-                console.log("Email verified. Access granted.");
-                window.location.href = '/';
-            } else {
-                console.log("Email not verified.");
-                const uid = user.uid;
-
-                // Retrieve user profile from Firestore to check if name exists
-                getDoc(doc(firestore, "users", uid)).then((docSnapshot) => {
-                    if (docSnapshot.exists()) {
-                        const userProfile = docSnapshot.data();
-                        if (!userProfile.name) {
-                            window.location.href = '/app/onboarding'; // Redirect to onboarding if name is not set
-                        } else {
-                            window.location.href = '/app/verification'; // Redirect to verification if name exists
-                        }
+            // Retrieve user profile from Firestore to check if name exists
+            getDoc(doc(firestore, "users", uid)).then((docSnapshot) => {
+                if (docSnapshot.exists()) {
+                    const userProfile = docSnapshot.data();
+                    if (!userProfile.name) {
+                        window.location.href = '/app/onboarding'; // Redirect to onboarding if name is not set
                     } else {
-                        // If the user profile doesn't exist, redirect to onboarding
-                        window.location.href = '/app/onboarding';
+                        window.location.href = '/app/verification'; // Redirect to verification if name exists
                     }
-                });
-            }
+                } else {
+                    // If the user profile doesn't exist, redirect to onboarding
+                    window.location.href = '/app/onboarding';
+                }
+            });
+        }
 
-            // This part may be redundant due to the previous logic
-            if (currentPath !== '/app/verification') {
-                window.location.href = '/app/verification';
-            } else {
-                console.log("Modal not available. Skipping email verification UI.");
-            }
-        })
+    })
 
         
         .catch((error) => {
@@ -353,6 +338,13 @@ async function handleOnboarding(uid) {
 
 //============================/////============================///
 // Manage user authentication state
+
+
+//   const unsubscribeAuthState = onAuthStateChanged(auth, (user) => {
+    //existing logic here
+//   });
+
+// Call unsubscribe
 //============================/////============================///
 onAuthStateChanged(auth, (user) => {
     let publicElements = document.querySelectorAll("[data-onlogin='hide']");
@@ -361,7 +353,7 @@ onAuthStateChanged(auth, (user) => {
     if (user) {
         const uid = user.uid;
         privateElements.forEach(function(element) {
-            element.style.display = "initial";
+            element.style.display = "initial";s
         });
         publicElements.forEach(function(element) {
             element.style.display = "none";
@@ -379,3 +371,10 @@ onAuthStateChanged(auth, (user) => {
         });
     }
 });
+
+
+//if (!user.emailVerified) {
+    console.log("Email not verified. Redirecting to email verification...");
+        window.location.href = '/app/verification'
+    return; // Prevent further execution
+//}
