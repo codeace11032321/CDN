@@ -7,10 +7,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
 
 // Your web app's Firebase configuration
-// i should hide this.. :/
-// will add more config//
 const firebaseConfig = {
     apiKey: "AIzaSyB2R6bNoBAdk9C4rvxDVu5ipEBLqu7JGjw",
     authDomain: "green-car-4a273.firebaseapp.com",
@@ -20,19 +19,25 @@ const firebaseConfig = {
     appId: "1:715460877679:web:9596b97ab4d13555195c9a",
     measurementId: "G-9JJ02D0Q7G"
 };
-//============================/////============================/////============================///
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app); // Initialize Firestore
+const firestore = getFirestore(app); // Initialize Firestore
+const storage = getStorage(app); // Initialize Storage
+
 //============================/////============================/////============================///
 // Identify auth action forms
 let signUpForm = document.getElementById('wf-form-signup-form');
 let signInForm = document.getElementById('wf-form-signin-form');
 let signOutButton = document.getElementById('signout-button');
 let onboardingForm = document.getElementById('onboarding-form'); // New onboarding form
+let fileInput = document.getElementById('fileInput');
 //============================/////============================/////============================///
 // Assign event listeners if the elements exist
+if (fileInput) {
+    fileInput.addEventListener('change', updateProfilePicture);
+}
 if (signUpForm) {
     signUpForm.addEventListener('submit', handleSignUp);
 }
@@ -48,6 +53,39 @@ if (signOutButton) {
 if (onboardingForm) { // Check for onboarding form presence
     onboardingForm.addEventListener('submit', handleOnboardingSubmit);
 }
+
+//============================/////============================///
+// Function to update the profile picture URL
+//============================/////============================///
+async function updateProfilePicture() {
+    const fileInput = document.getElementById('fileInput');
+    const profileImage = document.querySelector('img[data-ms-member="profile-image"]');
+    const profilePicUrlInput = document.querySelector('input[data-ms-member="profile-pic-url"]');
+
+    if (!fileInput || fileInput.files.length === 0) return; // Early return if no file input or no file selected
+
+    const file = fileInput.files[0];
+    const storageRef = ref(storage, `profile_pictures/${file.name}`);
+
+    try {
+        // Upload the file
+        await uploadBytes(storageRef, file);
+        console.log('Uploaded a blob or file!');
+
+        // Get the download URL
+        const url = await getDownloadURL(storageRef);
+        profileImage.src = url;
+        profilePicUrlInput.value = url; // Update hidden input
+
+        // Update Firestore with the new URL
+        const userId = auth.currentUser.uid; // Use the actual user ID from the auth object
+        await setDoc(doc(firestore, 'users', userId), { profilePicUrl: url }, { merge: true });
+        console.log('Profile picture URL updated in Firestore');
+    } catch (error) {
+        console.error('Error uploading file:', error);
+    }
+}
+
 
 //============================/////============================///
 // Handle sign-up//
