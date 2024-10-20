@@ -1,6 +1,6 @@
 //============================/////============================/////============================///
 //                                   auth version 9 by: marjooo
-//  added : email verification, onboarding function,redirect user, gated content|re-structured
+//  added : email verification, onboarding function, redirect user, gated content|re-structured
 //  optimization: -- closed all the function if not used to avoid wasting bandwidth on the background 
 //============================/////============================/////============================///
 // Import the functions you need from the SDKs you need
@@ -31,38 +31,48 @@ const storage = getStorage(app); // Initialize Storage
 let signUpForm = document.getElementById('wf-form-signup-form');
 let signInForm = document.getElementById('wf-form-signin-form');
 let signOutButton = document.getElementById('signout-button');
-let onboardingForm = document.getElementById('onboarding-form'); // New onboarding form
-let fileInput = document.getElementById('fileInput');
-//============================/////============================/////============================///
+let onboardingForm = document.getElementById('onboarding-form');
+let uploaderButton = document.querySelector('[data-ms-action="profile-uploader"]');
+
+// Create a hidden file input for image uploads
+const fileInput = document.createElement('input');
+fileInput.type = 'file';
+fileInput.accept = 'image/*'; // Accept only image files
+fileInput.style.display = 'none'; // Hide the input
+document.body.appendChild(fileInput);
+
+//============================/////============================///
 // Assign event listeners if the elements exist
+//============================/////============================///
 if (fileInput) {
     fileInput.addEventListener('change', updateProfilePicture);
 }
 if (signUpForm) {
     signUpForm.addEventListener('submit', handleSignUp);
 }
-
 if (signInForm) {
     signInForm.addEventListener('submit', handleSignIn);
 }
-
 if (signOutButton) {
     signOutButton.addEventListener('click', handleSignOut);
 }
-
-if (onboardingForm) { // Check for onboarding form presence
+if (onboardingForm) {
     onboardingForm.addEventListener('submit', handleOnboardingSubmit);
+}
+if (uploaderButton) {
+    uploaderButton.addEventListener('click', () => {
+        fileInput.click(); // Trigger the file input when button is clicked
+    });
 }
 
 //============================/////============================///
 // Function to update the profile picture URL
 //============================/////============================///
 async function updateProfilePicture() {
-    const fileInput = document.getElementById('fileInput');
     const profileImage = document.querySelector('img[data-ms-member="profile-image"]');
     const profilePicUrlInput = document.querySelector('input[data-ms-member="profile-pic-url"]');
 
-    if (!fileInput || fileInput.files.length === 0) return; // Early return if no file input or no file selected
+    if (fileInput.files.length === 0) return; // Early return if no file selected
 
     const file = fileInput.files[0];
     const storageRef = ref(storage, `profile_pictures/${file.name}`);
@@ -86,9 +96,8 @@ async function updateProfilePicture() {
     }
 }
 
-
 //============================/////============================///
-// Handle sign-up//
+// Handle sign-up
 //============================/////============================///
 function handleSignUp(e) {
     e.preventDefault();
@@ -117,9 +126,8 @@ function handleSignUp(e) {
     });
 }
 
-
 //============================/////============================///
-// Handle sign-in//
+// Handle sign-in
 //============================/////============================///
 function handleSignIn(e) {
     e.preventDefault();
@@ -144,9 +152,8 @@ function handleSignIn(e) {
     });
 }
 
-
 //============================/////============================///
-//             Function to send verification email
+// Function to send verification email
 //============================/////============================///
 function sendVerificationEmail() {
     const user = auth.currentUser;
@@ -161,9 +168,8 @@ function sendVerificationEmail() {
     }
 }
 
-
 //============================/////============================///
-//              Function to check email verification
+// Function to check email verification
 //============================/////============================///
 function checkEmailVerification(user) {
     if (!user.emailVerified) {
@@ -174,6 +180,9 @@ function checkEmailVerification(user) {
     }
 }
 
+//============================/////============================///
+// Handle sign-out
+//============================/////============================///
 function handleSignOut() {
     signOut(auth).then(() => {
         console.log('User signed out');
@@ -183,7 +192,9 @@ function handleSignOut() {
     });
 }
 
+//============================/////============================///
 // Handle onboarding form submission
+//============================/////============================///
 function handleOnboardingSubmit(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -192,18 +203,14 @@ function handleOnboardingSubmit(e) {
     handleOnboarding(uid); // Call the onboarding function
 }
 
-
 //============================/////============================///
-//              Handle onboarding profile creation
+// Handle onboarding profile creation
 //============================/////============================///
 async function handleOnboarding(uid) {
     const name = document.getElementById('onboarding-name').value; // Add name input
     const pictureUrl = document.getElementById('onboarding-picture-url').value; // Add picture URL input
     const bio = document.getElementById('onboarding-bio').value; // Add bio input
-    //============================///
-    //////// User profile data
-    //////// add user custom fields
-    //============================///
+
     const userProfile = {
         name: name,
         email: auth.currentUser.email, // Get the email from the current user
@@ -214,17 +221,15 @@ async function handleOnboarding(uid) {
 
     try {
         // Save user profile in Firestore
-        await setDoc(doc(db, "users", uid), userProfile);
+        await setDoc(doc(firestore, "users", uid), userProfile);
         console.log("User profile created successfully!");
     } catch (error) {
         console.error("Error creating user profile:", error);
     }
 }
 
-
-
 //============================/////============================///
-//             Manage user authentication state//
+// Manage user authentication state
 //============================/////============================///
 onAuthStateChanged(auth, (user) => {
     let publicElements = document.querySelectorAll("[data-onlogin='hide']");
