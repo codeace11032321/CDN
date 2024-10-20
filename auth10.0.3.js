@@ -33,6 +33,7 @@ let signInForm = document.getElementById('wf-form-signin-form');
 let signOutButton = document.getElementById('signout-button');
 let onboardingForm = document.getElementById('onboarding-form');
 let uploaderButton = document.querySelector('[data-ms-action="profile-uploader"]');
+let emailDisplay = document.querySelector('p[firebase-ms-action="user-email"]');
 
 // Create a hidden file input for image uploads
 const fileInput = document.createElement('input');
@@ -76,6 +77,25 @@ if (uploaderButton) {
 }
 
 
+if (emailDisplay) {
+    updateSignupEmail();
+}
+
+//============================/////============================///
+// Update verification modal email
+//============================/////============================///
+
+async function updateSignupEmail() {
+    let emailDisplay = document.querySelector('p[firebase-ms-action="user-email"]');
+    const getEmail = auth.currentUser?.email; // Optional chaining for safety
+
+    if (getEmail) {
+        emailDisplay.textContent = getEmail; // Update the email text
+    } else {
+        console.error('No user is currently signed in.');
+    }
+}
+
 
 
 
@@ -109,6 +129,8 @@ async function updateProfilePicture() {
         console.error('Error uploading file:', error);
     }
 }
+
+
 
 //============================/////============================///
 // Handle sign-up / create account
@@ -363,7 +385,7 @@ async function setUserProfileAttributes(uid) {
             }
 
             if (emailElement) {
-                emailElement.setAttribute('firebase-ms-doc', auth.currentUser.email || ""); 
+                emailElement.setAttribute('firebase-ms-doc', userProfile.email || ""); 
             }
 
             if (bioElement) {
