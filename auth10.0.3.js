@@ -351,14 +351,25 @@ async function setUserProfileAttributes(uid) {
             // Set attributes on the elements you want to update
             const nameElement = document.querySelector('[data-ms-doc="name"]');
             const profilePicElement = document.querySelector('[data-ms-doc="profilepicurl"]');
+            const emailElement = document.querySelector('[data-ms-doc="email"]');
+            const bioElement = document.querySelector('[data-ms-doc="bio"]');
 
             if (nameElement) {
-                nameElement.setAttribute('firebase-ms-doc', userProfile.name || ""); // Set name
+                nameElement.setAttribute('firebase-ms-doc', userProfile.name || "");
             }
 
             if (profilePicElement) {
-                profilePicElement.setAttribute('firebase-ms-doc', userProfile.profilePicUrl || ""); // Set profile picture URL
+                profilePicElement.setAttribute('firebase-ms-doc', userProfile.profilePicUrl || ""); 
             }
+
+            if (emailElement) {
+                emailElement.setAttribute('firebase-ms-doc', auth.currentUser.email || ""); 
+            }
+
+            if (bioElement) {
+                bioElement.setAttribute('firebase-ms-doc', userProfile.bio || ""); 
+            }
+
 
             console.log('User profile attributes set successfully');
         } else {
