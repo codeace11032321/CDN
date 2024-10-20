@@ -285,15 +285,31 @@ document.addEventListener('DOMContentLoaded', function () {
 //============================/////============================///
 async function handleOnboarding(uid) {
     const name = document.getElementById('onboarding-name').value; // Add name input
-    const pictureUrl = document.getElementById('onboarding-picture-url').value; // Add picture URL input
+    const pictureUrlInput = document.getElementById('onboarding-picture-url'); // Reference to picture URL input
     const bio = document.getElementById('onboarding-bio').value; // Add bio input
+
+    // Fetch the existing user document
+    const docSnapshot = await getDoc(doc(firestore, "users", uid));
+
+    let pictureUrl = ""; // Initialize pictureUrl
+
+    // If the document exists, copy profilePicUrl to pictureUrl
+    if (docSnapshot.exists()) {
+        const userProfile = docSnapshot.data(); // Get the existing user profile
+        pictureUrl = userProfile.profilePicUrl; // Copy profilePicUrl to pictureUrl
+    }
+
+    // If no profilePicUrl found, you can keep the default or handle accordingly
+    if (!pictureUrl) {
+        pictureUrl = pictureUrlInput.value; // Use the value from the input if profilePicUrl is not available
+    }
 
     const userProfile = {
         name: name,
         email: auth.currentUser.email, // Get the email from the current user
         pictureUrl: pictureUrl,
         bio: bio,
-        createdAt: new Date(),
+        createdAt: new Date(), // Set current date as createdAt
     };
 
     try {
@@ -304,6 +320,7 @@ async function handleOnboarding(uid) {
         console.error("Error creating user profile:", error);
     }
 }
+
 
 //============================/////============================///
 // Manage user authentication state
