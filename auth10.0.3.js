@@ -33,7 +33,7 @@ let signInForm = document.getElementById('wf-form-signin-form');
 let signOutButton = document.getElementById('signout-button');
 let onboardingForm = document.getElementById('onboarding-form');
 let uploaderButton = document.querySelector('[data-ms-action="profile-uploader"]');
-let emailDisplay = document.querySelector('p[firebase-ms-action="user-email"]');
+let messageElement = document.querySelector('[firebase-ms-action="user-email"]');
 
 // Create a hidden file input for image uploads
 const fileInput = document.createElement('input');
@@ -81,21 +81,9 @@ if (emailDisplay) {
     updateSignupEmail();
 }
 
-//============================/////============================///
-// Update verification modal email
-//============================/////============================///
-
-async function updateSignupEmail() {
-    let emailDisplay = document.querySelector('p[firebase-ms-action="user-email"]');
-    const getEmail = auth.currentUser?.email; // Optional chaining for safety
-
-    if (getEmail) {
-        emailDisplay.textContent = getEmail; // Update the email text
-    } else {
-        console.error('No user is currently signed in.');
-    }
+if (messageElement) {
+    messageElement.textContent = email; // Set the email in the message
 }
-
 
 
 
