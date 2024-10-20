@@ -5,7 +5,7 @@
 //============================/////============================/////============================///
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification, } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
 
@@ -221,13 +221,16 @@ function sendVerificationEmail() {
 
 //future update!! : add a notification when the email is verified
 //============================/////============================///
-function checkEmailVerification(user) {
+function checkEmailVerification() {
     const modalVerification = document.getElementById("email-verification-modal");
 
-    // Function to check the email verification status
-    function checkVerification() {
-        if (modalVerification) {
-            if (!user.emailVerified) {
+    // Listener function
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+        if (currentUser) {
+            // Reload user data to get the updated email verification status
+            await currentUser.reload();
+            
+            if (!currentUser.emailVerified) {
                 console.log("Email not verified. Please verify your email.");
                 modalVerification.style.visibility = "visible";
                 modalVerification.style.display = "block";
@@ -237,22 +240,14 @@ function checkEmailVerification(user) {
                 console.log("Email verified. Access granted.");
                 unsubscribe(); // Stop listening when verified
             }
-        }
-    }
-
-    // Listener function
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-        if (currentUser) {
-            // Reload user data to get the updated email verification status
-            await currentUser.reload();
-            checkVerification();
+        } else {
+            // User is signed out
+            console.log("User is signed out.");
+            modalVerification.style.visibility = "hidden";
+            modalVerification.style.display = "none";
         }
     });
-
-    // Initial check
-    checkVerification(user);
 }
-
 
 
 //============================/////============================///
@@ -339,6 +334,42 @@ async function handleOnboarding(uid) {
 }
 
 
+
+//============================/////============================///
+// set user field using attribute
+//============================/////============================///
+
+
+async function setUserProfileAttributes(uid) {
+    try {
+        const userDocRef = doc(firestore, "users", uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+            const userProfile = userDoc.data();
+
+            // Set attributes on the elements you want to update
+            const nameElement = document.querySelector('[data-ms-doc="name"]');
+            const profilePicElement = document.querySelector('[data-ms-doc="profilepicurl"]');
+
+            if (nameElement) {
+                nameElement.setAttribute('firebase-ms-doc', userProfile.name || ""); // Set name
+            }
+
+            if (profilePicElement) {
+                profilePicElement.setAttribute('firebase-ms-doc', userProfile.profilePicUrl || ""); // Set profile picture URL
+            }
+
+            console.log('User profile attributes set successfully');
+        } else {
+            console.error("User profile does not exist");
+        }
+    } catch (error) {
+        console.error("Error fetching user profile:", error);
+    }
+}
+
+
 //============================/////============================///
 // Manage user authentication state
 
@@ -353,8 +384,11 @@ onAuthStateChanged(auth, (user) => {
     let publicElements = document.querySelectorAll("[data-onlogin='hide']");
     let privateElements = document.querySelectorAll("[data-onlogin='show']");
 
+
     if (user) {
         const uid = user.uid;
+
+        setUserProfileAttributes(uid); 
         privateElements.forEach(function(element) {
             element.style.display = "initial";
         });
