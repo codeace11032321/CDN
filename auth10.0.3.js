@@ -77,12 +77,12 @@ if (uploaderButton) {
 }
 
 
-if (emailDisplay) {
-    updateSignupEmail();
-}
-
 if (messageElement) {
-    messageElement.textContent = email; // Set the email in the message
+    if (firebase.auth().currentUser) {
+        messageElement.textContent = firebase.auth().currentUser.email; 
+    } else {
+        messageElement.textContent = 'User not signed in'; 
+    }
 }
 
 
