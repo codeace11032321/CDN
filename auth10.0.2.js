@@ -179,6 +179,9 @@ function handleSignIn(e) {
                 errorText.innerHTML = errorMessage;
             }
         });
+
+
+        
 }
 
 
@@ -224,7 +227,7 @@ function checkEmailVerification(user) {
     }
 
     // Listener function
-    const unsubscribe = firebase.auth().onAuthStateChanged(async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
         if (currentUser) {
             // Reload user data to get the updated email verification status
             await currentUser.reload();
@@ -233,8 +236,9 @@ function checkEmailVerification(user) {
     });
 
     // Initial check
-    checkVerification();
+    checkVerification(user);
 }
+
 
 
 //============================/////============================///
@@ -345,7 +349,9 @@ onAuthStateChanged(auth, (user) => {
             element.style.display = "none";
         });
         console.log(`The current user's UID is equal to ${uid}`);
-        checkEmailVerification(user); // Check email verification on state change
+        
+        // Check email verification
+        checkEmailVerification(user);
     } else {
         publicElements.forEach(function(element) {
             element.style.display = "initial";
