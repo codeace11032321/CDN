@@ -297,11 +297,18 @@ async function handleOnboarding(uid) {
     if (docSnapshot.exists()) {
         const userProfile = docSnapshot.data(); // Get the existing user profile
         pictureUrl = userProfile.profilePicUrl; // Copy profilePicUrl to pictureUrl
+
+        // Redirect to home if userProfile is present
+        window.location.href = "/";
+        return; // Exit the function after redirecting
     }
 
-    // If no profilePicUrl found, you can keep the default or handle accordingly
+    // If the document does not exist, log a message
+    console.log("Please complete the onboarding process");
+
+    // If no profilePicUrl found, use the value from the input if profilePicUrl is not available
     if (!pictureUrl) {
-        pictureUrl = pictureUrlInput.value; // Use the value from the input if profilePicUrl is not available
+        pictureUrl = pictureUrlInput.value;
     }
 
     const userProfile = {
