@@ -201,26 +201,40 @@ function sendVerificationEmail() {
 
 //============================/////============================///
 // Function to check email verification
+
+//future update!! : add a notification when the email is verified
 //============================/////============================///
 function checkEmailVerification(user) {
     const modalVerification = document.getElementById("email-verification-modal");
-    const currentPath = window.location.pathname;
 
-    // Check if the modal element exists
-    if (modalVerification) {
-        if (!user.emailVerified) {
-            console.log("Email not verified. Please verify your email.");
-            modalVerification.style.visibility = "visible";
-            modalVerification.style.display = "block";
-        } else {
-            modalVerification.style.visibility = "hidden";
-            modalVerification.style.display = "none"; 
-            console.log("Email verified. Access granted.");
+    // Function to check the email verification status
+    function checkVerification() {
+        if (modalVerification) {
+            if (!user.emailVerified) {
+                console.log("Email not verified. Please verify your email.");
+                modalVerification.style.visibility = "visible";
+                modalVerification.style.display = "block";
+            } else {
+                modalVerification.style.visibility = "hidden";
+                modalVerification.style.display = "none"; 
+                console.log("Email verified. Access granted.");
+                unsubscribe(); // Stop listening when verified
+            }
         }
-
     }
-}
 
+    // Listener function
+    const unsubscribe = firebase.auth().onAuthStateChanged(async (currentUser) => {
+        if (currentUser) {
+            // Reload user data to get the updated email verification status
+            await currentUser.reload();
+            checkVerification();
+        }
+    });
+
+    // Initial check
+    checkVerification();
+}
 
 
 //============================/////============================///
@@ -242,9 +256,29 @@ function handleOnboardingSubmit(e) {
     e.preventDefault();
     e.stopPropagation();
 
-    const uid = auth.currentUser.uid; // Get the current user's UID
+
+    const uid = auth.currentUser?.uid; // avoid errors
+    if (uid) {
     handleOnboarding(uid); // Call the onboarding function
+    } else {
+    console.error("User is not authenticated");
+    }
+
+    //const uid = auth.currentUser.uid; 
+    //handleOnboarding(uid); 
+
+    // Wait for DOM to load before attaching event listeners
+    document.addEventListener('DOMContentLoaded', function () {
+    const onboardingForm = document.getElementById('onboarding-form'); // Make sure to reference the form
+    onboardingForm.addEventListener('submit', handleOnboardingSubmit); // Attach to form submission
+    });
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    const submitButton = document.getElementById('onboarding-submit');
+    submitButton.addEventListener('click', handleOnboardingSubmit);
+});
+
 
 //============================/////============================///
 // Handle onboarding profile creation
