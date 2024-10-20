@@ -1,0 +1,213 @@
+//============================/////============================/////============================///
+//                                   auth version 9 by: marjooo
+//  added : email verification, onboarding function,redirect user, gated content|re-structured
+//  optimization: -- closed all the function if not used to avoid wasting bandwidth on the background 
+//============================/////============================/////============================///
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+
+// Your web app's Firebase configuration
+// i should hide this.. :/
+// will add more config//
+const firebaseConfig = {
+    apiKey: "AIzaSyB2R6bNoBAdk9C4rvxDVu5ipEBLqu7JGjw",
+    authDomain: "green-car-4a273.firebaseapp.com",
+    projectId: "green-car-4a273",
+    storageBucket: "green-car-4a273.appspot.com",
+    messagingSenderId: "715460877679",
+    appId: "1:715460877679:web:9596b97ab4d13555195c9a",
+    measurementId: "G-9JJ02D0Q7G"
+};
+//============================/////============================/////============================///
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app); // Initialize Firestore
+//============================/////============================/////============================///
+// Identify auth action forms
+let signUpForm = document.getElementById('wf-form-signup-form');
+let signInForm = document.getElementById('wf-form-signin-form');
+let signOutButton = document.getElementById('signout-button');
+let onboardingForm = document.getElementById('onboarding-form'); // New onboarding form
+//============================/////============================/////============================///
+// Assign event listeners if the elements exist
+if (signUpForm) {
+    signUpForm.addEventListener('submit', handleSignUp);
+}
+
+if (signInForm) {
+    signInForm.addEventListener('submit', handleSignIn);
+}
+
+if (signOutButton) {
+    signOutButton.addEventListener('click', handleSignOut);
+}
+
+if (onboardingForm) { // Check for onboarding form presence
+    onboardingForm.addEventListener('submit', handleOnboardingSubmit);
+}
+
+//============================/////============================///
+// Handle sign-up//
+//============================/////============================///
+function handleSignUp(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
+
+    console.log("Email is: " + email);
+    
+    createUserWithEmailAndPassword(auth, email, password)
+    .then((userCredential) => {
+        const user = userCredential.user;
+        console.log('User successfully created: ' + user.email);
+        sendVerificationEmail(); // Send verification email after sign-up
+        // Redirect to onboarding page
+        window.location.href = '/app/onboarding'; // Redirect added here
+    })
+    .catch((error) => {
+        const errorMessage = error.message;
+        var errorText = document.getElementById('signup-error-message');
+        console.log(errorMessage);
+        if (errorText) {
+            errorText.innerHTML = errorMessage;
+        }
+    });
+}
+
+
+//============================/////============================///
+// Handle sign-in//
+//============================/////============================///
+function handleSignIn(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const email = document.getElementById('signin-email').value;
+    const password = document.getElementById('signin-password').value;
+    
+    signInWithEmailAndPassword(auth, email, password)
+    .then((userCredential) => {
+        const user = userCredential.user;
+        console.log('User logged in: ' + user.email);
+        checkEmailVerification(user); // Check email verification status
+    })
+    .catch((error) => {
+        const errorMessage = error.message;
+        var errorText = document.getElementById('signin-error-message');
+        console.log(errorMessage);
+        if (errorText) {
+            errorText.innerHTML = errorMessage;
+        }
+    });
+}
+
+
+//============================/////============================///
+//             Function to send verification email
+//============================/////============================///
+function sendVerificationEmail() {
+    const user = auth.currentUser;
+    if (user) {
+        sendEmailVerification(user)
+            .then(() => {
+                console.log("Verification email sent!");
+            })
+            .catch((error) => {
+                console.error("Error sending verification email:", error);
+            });
+    }
+}
+
+
+//============================/////============================///
+//              Function to check email verification
+//============================/////============================///
+function checkEmailVerification(user) {
+    if (!user.emailVerified) {
+        console.log("Email not verified. Redirecting to verification notice.");
+        window.location.href = '/app/verification'; // Redirect or handle as needed
+    } else {
+        console.log("Email verified. Access granted.");
+    }
+}
+
+function handleSignOut() {
+    signOut(auth).then(() => {
+        console.log('User signed out');
+    }).catch((error) => {
+        const errorMessage = error.message;
+        console.log(errorMessage);
+    });
+}
+
+// Handle onboarding form submission
+function handleOnboardingSubmit(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const uid = auth.currentUser.uid; // Get the current user's UID
+    handleOnboarding(uid); // Call the onboarding function
+}
+
+
+//============================/////============================///
+//              Handle onboarding profile creation
+//============================/////============================///
+async function handleOnboarding(uid) {
+    const name = document.getElementById('onboarding-name').value; // Add name input
+    const pictureUrl = document.getElementById('onboarding-picture-url').value; // Add picture URL input
+    const bio = document.getElementById('onboarding-bio').value; // Add bio input
+    //============================///
+    //////// User profile data
+    //////// add user custom fields
+    //============================///
+    const userProfile = {
+        name: name,
+        email: auth.currentUser.email, // Get the email from the current user
+        pictureUrl: pictureUrl,
+        bio: bio,
+        createdAt: new Date(),
+    };
+
+    try {
+        // Save user profile in Firestore
+        await setDoc(doc(db, "users", uid), userProfile);
+        console.log("User profile created successfully!");
+    } catch (error) {
+        console.error("Error creating user profile:", error);
+    }
+}
+
+
+
+//============================/////============================///
+//             Manage user authentication state//
+//============================/////============================///
+onAuthStateChanged(auth, (user) => {
+    let publicElements = document.querySelectorAll("[data-onlogin='hide']");
+    let privateElements = document.querySelectorAll("[data-onlogin='show']");
+
+    if (user) {
+        const uid = user.uid;
+        privateElements.forEach(function(element) {
+            element.style.display = "initial";
+        });
+        publicElements.forEach(function(element) {
+            element.style.display = "none";
+        });
+        console.log(`The current user's UID is equal to ${uid}`);
+        checkEmailVerification(user); // Check email verification on state change
+    } else {
+        publicElements.forEach(function(element) {
+            element.style.display = "initial";
+        });
+        privateElements.forEach(function(element) {
+            element.style.display = "none";
+        });
+    }
+});
