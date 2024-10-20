@@ -67,6 +67,7 @@ if (uploaderButton) {
 
 
 
+
 //============================/////============================///
 // Function to update the profile picture URL
 //============================/////============================///
@@ -142,7 +143,9 @@ function handleSignIn(e) {
     .then((userCredential) => {
         const user = userCredential.user;
         console.log('User logged in: ' + user.email);
-        checkEmailVerification(user); // Check email verification status
+
+        if 
+        
     })
     .catch((error) => {
         const errorMessage = error.message;
@@ -171,7 +174,6 @@ function sendVerificationEmail() {
             });
     }
 }
-
 
 
 
