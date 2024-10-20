@@ -172,11 +172,23 @@ function sendVerificationEmail() {
 // Function to check email verification
 //============================/////============================///
 function checkEmailVerification(user) {
+    const modalVerification = document.getElementById("email-verification-modal"); // Corrected the way to get the element
+    const currentPath = window.location.pathname;
+
     if (!user.emailVerified) {
-        console.log("Email not verified. Redirecting to verification notice.");
-        window.location.href = '/app/verification'; // Redirect or handle as needed
-    } else {
+        console.log("Email not verified. please verify your email");
+        modalVerification.style.visibility = "visible";
+        modalVerification.style.display = "block";
+    } else if (user.emailVerified) {
+        modalVerification.style.visibility = "hidden";
+        modalVerification.style.display = "none"; 
         console.log("Email verified. Access granted.");
+       
+    }else if(!user.emailVerified && currentPath !== '/app/onboarding'){
+        console.log("Email not verified. Access not granted.");
+        window.location.href = '/app/onboarding';
+    }else{
+        window.location.href = '/app/verification';
     }
 }
 
