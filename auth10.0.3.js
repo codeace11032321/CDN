@@ -128,7 +128,10 @@ function handleSignUp(e) {
         console.log('User successfully created: ' + user.email);
         sendVerificationEmail(); // Send verification email after sign-up
         // Redirect to onboarding page
-        window.location.href = `/app/onboarding?authtoken=${userCredential.user.refreshToken}`;
+        user.getIdToken().then((token) => {
+        // Redirect to onboarding page with the token
+        window.location.href = `/app/onboarding?authtoken=${token}`;
+    });
     })
     .catch((error) => {
         const errorMessage = error.message;
