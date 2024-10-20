@@ -44,6 +44,7 @@ document.body.appendChild(fileInput);
 //============================/////============================///
 // Assign event listeners if the elements exist
 //============================/////============================///
+// Check and add event listeners if elements exist
 if (fileInput) {
     fileInput.addEventListener('change', updateProfilePicture);
 }
@@ -58,12 +59,25 @@ if (signOutButton) {
 }
 if (onboardingForm) {
     onboardingForm.addEventListener('submit', handleOnboardingSubmit);
+    
+    // Setup submit button listener for onboarding form
+    document.addEventListener('DOMContentLoaded', function () {
+        const submitButton = document.getElementById('onboarding-submit');
+        if (submitButton) {
+            submitButton.addEventListener('click', handleOnboardingSubmit);
+        }
+    });
 }
+
 if (uploaderButton) {
     uploaderButton.addEventListener('click', () => {
         fileInput.click(); // Trigger the file input when button is clicked
     });
 }
+
+
+
+
 
 //============================/////============================///
 // Function to update the profile picture URL
@@ -278,10 +292,6 @@ function handleOnboardingSubmit(e) {
     });
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-    const submitButton = document.getElementById('onboarding-submit');
-    submitButton.addEventListener('click', handleOnboardingSubmit);
-});
 
 
 //============================/////============================///
