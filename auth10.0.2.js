@@ -291,7 +291,7 @@ async function handleOnboarding(uid) {
     const userProfile = {
         name: name,
         email: auth.currentUser.email, // Get the email from the current user
-        pictureUrl: pictureUrl,
+        pictureUrl: currentUser.profilePicUrl,
         bio: bio,
         createdAt: new Date(),
     };
