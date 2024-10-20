@@ -132,25 +132,56 @@ function handleSignUp(e) {
 function handleSignIn(e) {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const email = document.getElementById('signin-email').value;
     const password = document.getElementById('signin-password').value;
-    
+
     signInWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-        const user = userCredential.user;
-        console.log('User logged in: ' + user.email);
-        window.location.href = "/";
-    })
-    .catch((error) => {
-        const errorMessage = error.message;
-        var errorText = document.getElementById('signin-error-message');
-        console.log(errorMessage);
-        if (errorText) {
-            errorText.innerHTML = errorMessage;
-        }
-    });
+        .then((userCredential) => {
+            const user = userCredential.user;
+            console.log('User logged in: ' + user.email);
+
+            if (user.emailVerified) {
+                console.log("Email verified. Access granted.");
+                window.location.href = '/';
+            } else {
+                console.log("Email not verified.");
+                const uid = user.uid;
+
+                // Retrieve user profile from Firestore to check if name exists
+                getDoc(doc(firestore, "users", uid)).then((docSnapshot) => {
+                    if (docSnapshot.exists()) {
+                        const userProfile = docSnapshot.data();
+                        if (!userProfile.name) {
+                            window.location.href = '/app/onboarding'; // Redirect to onboarding if name is not set
+                        } else {
+                            window.location.href = '/app/verification'; // Redirect to verification if name exists
+                        }
+                    } else {
+                        // If the user profile doesn't exist, redirect to onboarding
+                        window.location.href = '/app/onboarding';
+                    }
+                });
+            }
+
+            // This part may be redundant due to the previous logic
+            if (currentPath !== '/app/verification') {
+                window.location.href = '/app/verification';
+            } else {
+                console.log("Modal not available. Skipping email verification UI.");
+            }
+        })
+        .catch((error) => {
+            const errorMessage = error.message;
+            var errorText = document.getElementById('signin-error-message');
+            console.log(errorMessage);
+            if (errorText) {
+                errorText.innerHTML = errorMessage;
+            }
+        });
 }
+
+
 
 //============================/////============================///
 // Function to send verification email
@@ -187,15 +218,6 @@ function checkEmailVerification(user) {
             console.log("Email verified. Access granted.");
         }
 
-        // Additional checks for redirection
-        if (!user.emailVerified && currentPath !== '/app/onboarding') {
-            console.log("Email not verified. Access not granted.");
-            window.location.href = '/app/onboarding';
-        } else if (currentPath !== '/app/verification') {
-            window.location.href = '/app/verification';
-        }
-    } else {
-        console.log("Modal not available. Skipping email verification UI.");
     }
 }
 
