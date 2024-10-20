@@ -257,7 +257,7 @@ function handleOnboardingSubmit(e) {
     e.stopPropagation();
 
 
-    const uid = auth.currentUser?.uid; // avoid errors
+    const uid = auth.currentUser?.uid; //  avoid errors
     if (uid) {
     handleOnboarding(uid); // Call the onboarding function
     } else {
@@ -291,7 +291,7 @@ async function handleOnboarding(uid) {
     const userProfile = {
         name: name,
         email: auth.currentUser.email, // Get the email from the current user
-        pictureUrl: currentUser.profilePicUrl,
+        pictureUrl: pictureUrl,
         bio: bio,
         createdAt: new Date(),
     };
