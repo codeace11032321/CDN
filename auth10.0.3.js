@@ -114,57 +114,62 @@ async function updateProfilePicture() {
 //============================/////============================///
 // Handle sign-up / create account
 //============================/////============================///
-const customAuth = getAuth();
-signInWithCustomToken(customAuth, token)
-  .then((userCredential) => {
-    const user = userCredential.user;
-    // Use user.email instead of customAuth.currentUser.email
-    messageElement.textContent = user.email;
-  })
-  .catch((error) => {
-    const errorCode = error.code;
-    const errorMessage = error.message;
-    // Handle the error (e.g., display it)
-    console.error(`Error (${errorCode}): ${errorMessage}`);
-  });
+async function handleCustomSignUp(token) {
+    const customAuth = getAuth();
 
+    try {
+        const userCredential = await signInWithCustomToken(customAuth, token);
+        const user = userCredential.user;
 
+        // Log the user email
+        console.log('User signed in:', user.email);
+
+        // Store user email in Firestore
+        await setDoc(doc(firestore, "users", user.uid), {
+            email: user.email,
+            createdAt: new Date(),
+        });
+        console.log('User added to Firestore:', user.email);
+    } catch (error) {
+        console.error(`Error during custom sign-up: ${error.code} - ${error.message}`);
+    }
+}
 
 //============================/////============================///
 // Handle sign-up / create account
 //============================/////============================///
+
 function handleSignUp(e) {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
 
     console.log("Email is: " + email);
-    
+
     createUserWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-        const user = userCredential.user;
-        console.log('User successfully created: ' + user.email);
-        sendVerificationEmail(); // Send verification email after sign-up
-        // Redirect to onboarding page
-        user.getIdToken().then((token) => {
-        // Redirect to onboarding page with the token
-        window.location.href = `/app/onboarding?authtoken=${token}`;
-    });
-    })
-    .catch((error) => {
-        const errorMessage = error.message;
-        var errorText = document.getElementById('signup-error-message');
-        console.log(errorMessage);
-        if (errorText) {
-            errorText.innerHTML = errorMessage;
-        }
-    });
+        .then(async (userCredential) => {
+            const user = userCredential.user;
+            console.log('User successfully created: ' + user.email);
+            await sendVerificationEmail(); // Ensure this function is defined
+            
+            const token = await user.getIdToken();
+            await handleCustomSignUp(token); // Ensure this completes before redirect
 
-
-    
+            // Redirect to onboarding page with the token
+            window.location.href = `/app/onboarding?authtoken=${token}`;
+        })
+        .catch((error) => {
+            const errorMessage = error.message;
+            const errorText = document.getElementById('signup-error-message');
+            console.log(errorMessage);
+            if (errorText) {
+                errorText.innerHTML = errorMessage;
+            }
+        });
 }
+
 
 //============================/////============================///
 // Handle sign-in / login

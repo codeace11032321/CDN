@@ -136,6 +136,7 @@ async function handleCustomSignUp(token) {
 //============================/////============================///
 // Handle sign-up / create account
 //============================/////============================///
+
 function handleSignUp(e) {
     e.preventDefault();
     e.stopPropagation();
