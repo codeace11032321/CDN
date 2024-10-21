@@ -151,64 +151,29 @@ function handleSignUp(e) {
 
     console.log("Email is: " + email);
 
-
-
     createUserWithEmailAndPassword(auth, email, password)
-    .then(async (userCredential) => {
+    .then((userCredential) => {
         const user = userCredential.user;
         console.log('User successfully created: ' + user.email);
         sendVerificationEmail(); // Send verification email after sign-up
-
-        // Prepare user data for Firestore
-        const userProfile = {
-            email: user.email,
-            createdAt: new Date(),
-            // Add any other default fields you want
-        };
-
-        try {
-            // Write user email to Firestore
-            await setDoc(doc(firestore, "users", user.uid), userProfile);
-            console.log("User email added to Firestore successfully!");
-
-            // Redirect to onboarding page with token
-            user.getIdToken().then((token) => {
-                window.location.href = `/app/onboarding?authtoken=${token}&uid=${user.uid}`;
-            });
-        } catch (error) {
-            console.error("Error adding user email to Firestore:", error);
-        }
+        // Redirect to onboarding page
+        user.getIdToken().then((token) => {
+        // Redirect to onboarding page with the token
+        window.location.href = `/app/onboarding?authtoken=${token}`;
+    });
     })
     .catch((error) => {
-        console.error("Error creating user: ", error);
+        const errorMessage = error.message;
+        var errorText = document.getElementById('signup-error-message');
+        console.log(errorMessage);
+        if (errorText) {
+            errorText.innerHTML = errorMessage;
+        }
     });
 
 
-
-//     createUserWithEmailAndPassword(auth, email, password)
-//     .then((userCredential) => {
-//         const user = userCredential.user;
-//         console.log('User successfully created: ' + user.email);
-//         sendVerificationEmail(); // Send verification email after sign-up
-//         // Redirect to onboarding page
-
-//         user.getIdToken().then((token) => {
-//         // Redirect to onboarding page with the token
-//         window.location.href = `/app/onboarding?authtoken=${token}`;
-//     });
-//     })
-//     .catch((error) => {
-//         const errorMessage = error.message;
-//         var errorText = document.getElementById('signup-error-message');
-//         console.log(errorMessage);
-//         if (errorText) {
-//             errorText.innerHTML = errorMessage;
-//         }
-//     });
-
-
     
-// }
+}
 
 //============================/////============================///
 // Handle sign-in / login
