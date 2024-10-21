@@ -114,7 +114,7 @@ function handleSignUp(e) {
         console.log('User successfully created: ' + user.email);
         sendVerificationEmail(); // Send verification email after sign-up
         // Redirect to onboarding page
-        window.location.href = `/app/onboarding?token=${user.uid}`;
+        window.location.href = `/app/onboarding?authtoken=${userCredential.user.refreshToken}`;
 
     })
     .catch((error) => {
@@ -336,6 +336,7 @@ onAuthStateChanged(auth, (user) => {
 
     if (user) {
         const uid = user.uid;
+        setUserProfileAttributes(uid); // Pass uid to the function
         privateElements.forEach(function(element) {
             element.style.display = "initial";
         });
@@ -353,3 +354,43 @@ onAuthStateChanged(auth, (user) => {
         });
     }
 });
+
+
+async function setUserProfileAttributes(uid) {
+    try {
+        const userDocRef = doc(firestore, "users", uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+            const userProfile = userDoc.data();
+
+            // Set attributes on the elements you want to update
+            const nameElement = document.querySelector('[data-ms-doc="name"]');
+            const profilePicElement = document.querySelector('[data-ms-doc="profilepicurl"]');
+            const emailElement = document.querySelector('[data-ms-doc="email"]');
+            const bioElement = document.querySelector('[data-ms-doc="bio"]');
+
+            if (nameElement) {
+                nameElement.textContent = userProfile.name || ""; // Update text content
+            }
+
+            if (profilePicElement) {
+                profilePicElement.src = userProfile.pictureUrl || ""; // Set image source
+            }
+
+            if (emailElement) {
+                emailElement.textContent = userProfile.email || ""; // Update text content
+            }
+
+            if (bioElement) {
+                bioElement.textContent = userProfile.bio || ""; // Update text content
+            }
+
+            console.log('User profile attributes set successfully');
+        } else {
+            console.error("User profile does not exist");
+        }
+    } catch (error) {
+        console.error("Error fetching user profile:", error);
+    }
+}
