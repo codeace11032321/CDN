@@ -114,7 +114,8 @@ function handleSignUp(e) {
         console.log('User successfully created: ' + user.email);
         sendVerificationEmail(); // Send verification email after sign-up
         // Redirect to onboarding page
-        window.location.href = '/app/onboarding'; // Redirect added here
+        window.location.href = `/app/onboarding?token=${user.uid}`;
+
     })
     .catch((error) => {
         const errorMessage = error.message;
@@ -319,6 +320,7 @@ async function handleOnboarding(uid) {
         // Save user profile in Firestore
         await setDoc(doc(firestore, "users", uid), userProfile);
         console.log("User profile created successfully!");
+        window.location.href = "/"
     } catch (error) {
         console.error("Error creating user profile:", error);
     }
