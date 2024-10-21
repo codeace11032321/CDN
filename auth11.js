@@ -460,12 +460,12 @@ onAuthStateChanged(auth, (user) => {
 });
 
 
-if (!user.emailVerified) {
-    console.log("Email not verified. Redirecting to email verification...");
-        window.location.href = '/app/verification'
-    }else{
-        return;
-    }
+// if (!user.emailVerified) {
+//     console.log("Email not verified. Redirecting to email verification...");
+//         window.location.href = '/app/verification'
+//     }else{
+//         return;
+//     }
 
 let unsubscribeListener;
 
