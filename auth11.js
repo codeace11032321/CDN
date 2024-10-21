@@ -376,45 +376,45 @@ async function handleOnboarding(uid) {
 //============================/////============================///
 
 
-async function setUserProfileAttributes(uid) {
-    try {
-        const userDocRef = doc(firestore, "users", uid);
-        const userDoc = await getDoc(userDocRef);
+// async function setUserProfileAttributes(uid) {
+//     try {
+//         const userDocRef = doc(firestore, "users", uid);
+//         const userDoc = await getDoc(userDocRef);
 
-        if (userDoc.exists()) {
-            const userProfile = userDoc.data();
+//         if (userDoc.exists()) {
+//             const userProfile = userDoc.data();
 
-            // Set attributes on the elements you want to update
-            const nameElement = document.querySelector('[data-ms-doc="name"]');
-            const profilePicElement = document.querySelector('[data-ms-doc="profilepicurl"]');
-            const emailElement = document.querySelector('[data-ms-doc="email"]');
-            const bioElement = document.querySelector('[data-ms-doc="bio"]');
+//             // Set attributes on the elements you want to update
+//             const nameElement = document.querySelector('[data-ms-doc="name"]');
+//             const profilePicElement = document.querySelector('[data-ms-doc="profilepicurl"]');
+//             const emailElement = document.querySelector('[data-ms-doc="email"]');
+//             const bioElement = document.querySelector('[data-ms-doc="bio"]');
 
-            if (nameElement) {
-                nameElement.setAttribute('firebase-ms-doc', userProfile.name || "");
-            }
+//             if (nameElement) {
+//                 nameElement.setAttribute('firebase-ms-doc', userProfile.name || "");
+//             }
 
-            if (profilePicElement) {
-                profilePicElement.setAttribute('firebase-ms-doc', userProfile.profilePicUrl || ""); 
-            }
+//             if (profilePicElement) {
+//                 profilePicElement.setAttribute('firebase-ms-doc', userProfile.profilePicUrl || ""); 
+//             }
 
-            if (emailElement) {
-                emailElement.setAttribute('firebase-ms-doc', userProfile.email || ""); 
-            }
+//             if (emailElement) {
+//                 emailElement.setAttribute('firebase-ms-doc', userProfile.email || ""); 
+//             }
 
-            if (bioElement) {
-                bioElement.setAttribute('firebase-ms-doc', userProfile.bio || ""); 
-            }
+//             if (bioElement) {
+//                 bioElement.setAttribute('firebase-ms-doc', userProfile.bio || ""); 
+//             }
 
 
-            console.log('User profile attributes set successfully');
-        } else {
-            console.error("User profile does not exist");
-        }
-    } catch (error) {
-        console.error("Error fetching user profile:", error);
-    }
-}
+//             console.log('User profile attributes set successfully');
+//         } else {
+//             console.error("User profile does not exist");
+//         }
+//     } catch (error) {
+//         console.error("Error fetching user profile:", error);
+//     }
+// }
 
 
 //============================/////============================///
