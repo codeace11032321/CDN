@@ -119,19 +119,17 @@ async function handleCustomSignUp(token) {
         const userCredential = await signInWithCustomToken(customAuth, token);
         const user = userCredential.user;
 
-        // Use user.email instead of customAuth.currentUser.email
-        messageElement.textContent = user.email;
+        // Log the user email
+        console.log('User signed in:', user.email);
 
-        // Optionally, store user email in Firestore here if needed
+        // Store user email in Firestore
         await setDoc(doc(firestore, "users", user.uid), {
             email: user.email,
             createdAt: new Date(),
         });
+        console.log('User added to Firestore:', user.email);
     } catch (error) {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        // Handle the error (e.g., display it)
-        console.error(`Error (${errorCode}): ${errorMessage}`);
+        console.error(`Error during custom sign-up: ${error.code} - ${error.message}`);
     }
 }
 
@@ -148,28 +146,27 @@ function handleSignUp(e) {
     console.log("Email is: " + email);
 
     createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
+        .then(async (userCredential) => {
             const user = userCredential.user;
             console.log('User successfully created: ' + user.email);
-            sendVerificationEmail(); // Ensure this function is defined
+            await sendVerificationEmail(); // Ensure this function is defined
             
-            user.getIdToken().then((token) => {
-                // Call handleCustomSignUp with the token
-                handleCustomSignUp(token);
+            const token = await user.getIdToken();
+            await handleCustomSignUp(token); // Ensure this completes before redirect
 
-                // Redirect to onboarding page with the token
-                window.location.href = `/app/onboarding?authtoken=${token}`;
-            });
+            // Redirect to onboarding page with the token
+            window.location.href = `/app/onboarding?authtoken=${token}`;
         })
         .catch((error) => {
             const errorMessage = error.message;
-            var errorText = document.getElementById('signup-error-message');
+            const errorText = document.getElementById('signup-error-message');
             console.log(errorMessage);
             if (errorText) {
                 errorText.innerHTML = errorMessage;
             }
         });
 }
+
 
 //============================/////============================///
 // Handle sign-in / login
@@ -366,36 +363,37 @@ async function setUserProfileAttributes(uid) {
         const userDocRef = doc(firestore, "users", uid);
         const userDoc = await getDoc(userDocRef);
 
-        if (userDoc.exists()) {
-            const userProfile = userDoc.data();
-
-            // Set attributes on the elements you want to update
-            const nameElement = document.querySelector('[data-ms-doc="name"]');
-            const profilePicElement = document.querySelector('[data-ms-doc="profilepicurl"]');
-            const emailElement = document.querySelector('[data-ms-doc="email"]');
-            const bioElement = document.querySelector('[data-ms-doc="bio"]');
-
-            if (nameElement) {
-                nameElement.setAttribute('firebase-ms-doc', userProfile.name || "");
-            }
-
-            if (profilePicElement) {
-                profilePicElement.setAttribute('firebase-ms-doc', userProfile.profilePicUrl || ""); 
-            }
-
-            if (emailElement) {
-                emailElement.setAttribute('firebase-ms-doc', userProfile.email || ""); 
-            }
-
-            if (bioElement) {
-                bioElement.setAttribute('firebase-ms-doc', userProfile.bio || ""); 
-            }
-
-
-            console.log('User profile attributes set successfully');
-        } else {
+        // Check if the user profile exists
+        if (!userDoc.exists()) {
             console.error("User profile does not exist");
+            return; // Early return if the profile doesn't exist
         }
+
+        const userProfile = userDoc.data();
+
+        // Set attributes on the elements you want to update
+        const nameElement = document.querySelector('[data-ms-doc="name"]');
+        const profilePicElement = document.querySelector('[data-ms-doc="profilepicurl"]');
+        const emailElement = document.querySelector('[data-ms-doc="email"]');
+        const bioElement = document.querySelector('[data-ms-doc="bio"]');
+
+        if (nameElement) {
+            nameElement.setAttribute('firebase-ms-doc', userProfile.name || "");
+        }
+
+        if (profilePicElement) {
+            profilePicElement.setAttribute('firebase-ms-doc', userProfile.profilePicUrl || ""); 
+        }
+
+        if (emailElement) {
+            emailElement.setAttribute('firebase-ms-doc', userProfile.email || ""); 
+        }
+
+        if (bioElement) {
+            bioElement.setAttribute('firebase-ms-doc', userProfile.bio || ""); 
+        }
+
+        console.log('User profile attributes set successfully');
     } catch (error) {
         console.error("Error fetching user profile:", error);
     }
