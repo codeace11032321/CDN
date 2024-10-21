@@ -112,21 +112,30 @@ async function updateProfilePicture() {
 
 
 //============================/////============================///
-// Handle sign-up / create account
+// Handle custom sign-
 //============================/////============================///
-const customAuth = getAuth();
-signInWithCustomToken(customAuth, token)
-  .then((userCredential) => {
-    const user = userCredential.user;
-    // Use user.email instead of customAuth.currentUser.email
-    messageElement.textContent = user.email;
-  })
-  .catch((error) => {
-    const errorCode = error.code;
-    const errorMessage = error.message;
-    // Handle the error (e.g., display it)
-    console.error(`Error (${errorCode}): ${errorMessage}`);
-  });
+// async function handleCustomSignUp(token) {
+//     const customAuth = getAuth();
+    
+//     try {
+//         const userCredential = await signInWithCustomToken(customAuth, token);
+//         const user = userCredential.user;
+
+//         // Use user.email instead of customAuth.currentUser.email
+//         messageElement.textContent = user.email;
+
+//         // Optionally, store user email in Firestore here if needed
+//         await setDoc(doc(firestore, "users", user.uid), {
+//             email: user.email,
+//             createdAt: new Date(),
+//         });
+//     } catch (error) {
+//         const errorCode = error.code;
+//         const errorMessage = error.message;
+//         // Handle the error (e.g., display it)
+//         console.error(`Error (${errorCode}): ${errorMessage}`);
+//     }
+// }
 
 
 
