@@ -114,19 +114,19 @@ async function updateProfilePicture() {
 //============================/////============================///
 // Handle sign-up / create account
 //============================/////============================///
-const customAuth = getAuth();
-signInWithCustomToken(customAuth, token)
-  .then((userCredential) => {
-    const user = userCredential.user;
-    // Use user.email instead of customAuth.currentUser.email
-    messageElement.textContent = user.email;
-  })
-  .catch((error) => {
-    const errorCode = error.code;
-    const errorMessage = error.message;
-    // Handle the error (e.g., display it)
-    console.error(`Error (${errorCode}): ${errorMessage}`);
-  });
+// const customAuth = getAuth();
+// signInWithCustomToken(customAuth, token)
+//   .then((userCredential) => {
+//     const user = userCredential.user;
+//     // Use user.email instead of customAuth.currentUser.email
+//     messageElement.textContent = user.email;
+//   })
+//   .catch((error) => {
+//     const errorCode = error.code;
+//     const errorMessage = error.message;
+//     // Handle the error (e.g., display it)
+//     console.error(`Error (${errorCode}): ${errorMessage}`);
+//   });
 
 
 
