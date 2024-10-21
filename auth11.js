@@ -260,6 +260,12 @@ function sendVerificationEmail() {
 function checkEmailVerification() {
     const modalVerification = document.getElementById("email-verification-modal");
 
+    // Check if the modal exists
+    if (!modalVerification) {
+        console.warn("Email verification modal is not in the DOM.");
+        return; // Exit the function if the modal is not found
+    }
+
     // Listener function
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
         if (currentUser) {
@@ -314,16 +320,26 @@ async function handleOnboardingSubmit(e) {
         return; // Prevent further execution
     }
 
-    const uid = auth.currentUser?.uid; // Avoid errors
+    try {
+        // Sign in with the custom token
+        await window.customSignInWithCustomToken(authToken);
+    } catch (error) {
+        console.error("Error signing in with custom token:", error);
+        return; // Stop if sign-in fails
+    }
+
+    const uid = auth.currentUser?.uid; // Get the current user's UID
+
     if (uid) {
         await handleOnboarding(uid); // Call the onboarding function
     } else {
-        console.error("User is not authenticated");
+        console.error("User is not authenticated after sign-in.");
     }
+
+    console.log("Attempting to sign in with token:", authToken);
+    console.log("customSignInWithCustomToken function:", window.customSignInWithCustomToken);
+
 }
-
-
-
 
 
 //============================/////============================///
@@ -469,10 +485,16 @@ onAuthStateChanged(auth, (user) => {
 
 let unsubscribeListener;
 
-async function setUserProfileAttributes(uid) {
+async function updateUserProfileDisplay(uid) {
     const auth = getAuth();
-    const user = auth.currentUser; // Get the currently signed-in user
-    let userEmail = user ? user.email : ""; // Get the user's email from authentication
+    const user = auth.currentUser;
+
+    if (!user) {
+        console.log("User is not authenticated. Exiting.");
+        return; // Exit if user is not authenticated
+    }
+
+    const userEmail = user.email || ""; // Get the user's email from authentication
 
     try {
         const userDocRef = doc(firestore, "users", uid);
@@ -487,21 +509,21 @@ async function setUserProfileAttributes(uid) {
             const emailElement = document.querySelector('[data-ms-doc="email"]');
             const bioElement = document.querySelector('[data-ms-doc="bio"]');
 
-            if (nameElement) {
-                nameElement.setAttribute('firebase-ms-doc', userProfile.name || "");
+            // If any of the profile elements are missing, unsubscribe the listener
+            if (!nameElement || !profilePicElement || !emailElement || !bioElement) {
+                console.error("One or more user profile elements are missing in the DOM. Turning off listener.");
+                if (unsubscribeListener) {
+                    unsubscribeListener();
+                    unsubscribeListener = null; // Clear the listener reference
+                }
+                return; // Exit the function
             }
 
-            if (profilePicElement) {
-                profilePicElement.setAttribute('firebase-ms-doc', userProfile.profilePicUrl || ""); 
-            }
-
-            if (emailElement) {
-                emailElement.setAttribute('firebase-ms-doc', userProfile.email || userEmail || ""); 
-            }
-
-            if (bioElement) {
-                bioElement.setAttribute('firebase-ms-doc', userProfile.bio || ""); 
-            }
+            // Update the attributes
+            nameElement.setAttribute('firebase-ms-doc', userProfile.name || "");
+            profilePicElement.setAttribute('firebase-ms-doc', userProfile.profilePicUrl || ""); 
+            emailElement.setAttribute('firebase-ms-doc', userProfile.email || userEmail || ""); 
+            bioElement.setAttribute('firebase-ms-doc', userProfile.bio || ""); 
 
             console.log('User profile attributes set successfully');
 
@@ -511,12 +533,16 @@ async function setUserProfileAttributes(uid) {
                 unsubscribeListener = null; // Clear the listener reference
             }
         } else {
-            console.error("User profile does not exist");
+            console.error("User profile does not exist.");
             const emailElement = document.querySelector('[data-ms-doc="email"]');
             if (emailElement) {
                 emailElement.setAttribute('firebase-ms-doc', userEmail || ""); // Use email from auth
             }
-            // Continue listening for changes
+            // Optionally unsubscribe if the profile is not found
+            if (unsubscribeListener) {
+                unsubscribeListener();
+                unsubscribeListener = null; // Clear the listener reference
+            }
         }
     } catch (error) {
         console.error("Error fetching user profile:", error);
@@ -525,20 +551,29 @@ async function setUserProfileAttributes(uid) {
 
 // Function to start listening for user profile changes
 function listenForUserProfile(uid) {
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (!user) {
+        console.log("User is not authenticated. Turning off listener.");
+        if (unsubscribeListener) {
+            unsubscribeListener();
+            unsubscribeListener = null; // Clear the listener reference
+        }
+        return; // Exit if user is not authenticated
+    }
+
     const userDocRef = doc(firestore, "users", uid);
 
     unsubscribeListener = onSnapshot(userDocRef, (doc) => {
         if (doc.exists()) {
-            setUserProfileAttributes(uid);
+            updateUserProfileDisplay(uid);
         } else {
             console.error("User profile does not exist, continuing to listen.");
-            // Here, you can set the email as before, but you might want to continue listening
-            const auth = getAuth();
-            const user = auth.currentUser;
-            let userEmail = user ? user.email : "";
-            const emailElement = document.querySelector('[data-ms-doc="email"]');
-            if (emailElement) {
-                emailElement.setAttribute('firebase-ms-doc', userEmail || ""); // Use email from auth
+            // Unsubscribe if the profile does not exist
+            if (unsubscribeListener) {
+                unsubscribeListener();
+                unsubscribeListener = null; // Clear the listener reference
             }
         }
     }, (error) => {
@@ -548,3 +583,4 @@ function listenForUserProfile(uid) {
 
 // Call this function with the user's UID to start listening
 listenForUserProfile('user_uid_here');
+
