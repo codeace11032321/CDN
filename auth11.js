@@ -460,7 +460,6 @@ onAuthStateChanged(auth, (user) => {
 if (!user.emailVerified) {
    console.log("Email not verified. Redirecting to email verification...");
        window.location.href = '/app/verification'
-   return; // Prevent further execution
 }
 
 
