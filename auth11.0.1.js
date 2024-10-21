@@ -109,14 +109,12 @@ async function updateProfilePicture() {
 }
 
 
-
-
 //============================/////============================///
 // Handle custom sign-
 //============================/////============================///
 async function handleCustomSignUp(token) {
     const customAuth = getAuth();
-    
+
     try {
         const userCredential = await signInWithCustomToken(customAuth, token);
         const user = userCredential.user;
@@ -137,47 +135,40 @@ async function handleCustomSignUp(token) {
     }
 }
 
-
-
 //============================/////============================///
 // Handle sign-up / create account
 //============================/////============================///
 function handleSignUp(e) {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
 
     console.log("Email is: " + email);
 
-
-
-    
     createUserWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-        const user = userCredential.user;
-        console.log('User successfully created: ' + user.email);
-        sendVerificationEmail(); // Send verification email after sign-up
-        // Redirect to onboarding page
-        handleCustomSignUp();
-        
-        user.getIdToken().then((token) => {
-        // Redirect to onboarding page with the token
-        window.location.href = `/app/onboarding?authtoken=${token}`;
-    });
-    })
-    .catch((error) => {
-        const errorMessage = error.message;
-        var errorText = document.getElementById('signup-error-message');
-        console.log(errorMessage);
-        if (errorText) {
-            errorText.innerHTML = errorMessage;
-        }
-    });
+        .then((userCredential) => {
+            const user = userCredential.user;
+            console.log('User successfully created: ' + user.email);
+            sendVerificationEmail(); // Ensure this function is defined
+            
+            user.getIdToken().then((token) => {
+                // Call handleCustomSignUp with the token
+                handleCustomSignUp(token);
 
-
-    
+                // Redirect to onboarding page with the token
+                window.location.href = `/app/onboarding?authtoken=${token}`;
+            });
+        })
+        .catch((error) => {
+            const errorMessage = error.message;
+            var errorText = document.getElementById('signup-error-message');
+            console.log(errorMessage);
+            if (errorText) {
+                errorText.innerHTML = errorMessage;
+            }
+        });
 }
 
 //============================/////============================///
@@ -187,8 +178,6 @@ function handleSignIn(e) {
     e.preventDefault();
     e.stopPropagation();
 
-
-
     const email = document.getElementById('signin-email').value;
     const password = document.getElementById('signin-password').value;
 
@@ -197,33 +186,29 @@ function handleSignIn(e) {
             const user = userCredential.user;
             console.log('User logged in: ' + user.email);
 
-    
-        if (user.emailVerified) {
-            console.log("Email verified. Access granted.");
-            window.location.href = '/';
-        } else {
-            console.log("Email not verified.");
-            const uid = user.uid;
+            if (user.emailVerified) {
+                console.log("Email verified. Access granted.");
+                window.location.href = '/';
+            } else {
+                console.log("Email not verified.");
+                const uid = user.uid;
 
-            // Retrieve user profile from Firestore to check if name exists
-            getDoc(doc(firestore, "users", uid)).then((docSnapshot) => {
-                if (docSnapshot.exists()) {
-                    const userProfile = docSnapshot.data();
-                    if (!userProfile.name) {
-                        window.location.href = '/app/onboarding'; // Redirect to onboarding if name is not set
+                // Retrieve user profile from Firestore to check if name exists
+                getDoc(doc(firestore, "users", uid)).then((docSnapshot) => {
+                    if (docSnapshot.exists()) {
+                        const userProfile = docSnapshot.data();
+                        if (!userProfile.name) {
+                            window.location.href = '/app/onboarding'; // Redirect to onboarding if name is not set
+                        } else {
+                            window.location.href = '/app/verification'; // Redirect to verification if name exists
+                        }
                     } else {
-                        window.location.href = '/app/verification'; // Redirect to verification if name exists
+                        // If the user profile doesn't exist, redirect to onboarding
+                        window.location.href = '/app/onboarding';
                     }
-                } else {
-                    // If the user profile doesn't exist, redirect to onboarding
-                    window.location.href = '/app/onboarding';
-                }
-            });
-        }
-
-    })
-
-        
+                });
+            }
+        })
         .catch((error) => {
             const errorMessage = error.message;
             var errorText = document.getElementById('signin-error-message');
@@ -232,9 +217,6 @@ function handleSignIn(e) {
                 errorText.innerHTML = errorMessage;
             }
         });
-
-
-        
 }
 
 
