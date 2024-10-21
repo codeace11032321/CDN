@@ -156,6 +156,7 @@ function handleSignUp(e) {
         const user = userCredential.user;
         console.log('User successfully created: ' + user.email);
         sendVerificationEmail(); // Send verification email after sign-up
+        handleOnboarding();
         // Redirect to onboarding page
         user.getIdToken().then((token) => {
         // Redirect to onboarding page with the token
