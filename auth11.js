@@ -6,7 +6,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification, } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
 
 // Your web app's Firebase configuration
@@ -432,34 +432,34 @@ async function setUserProfileAttributes(uid) {
 
 // Call unsubscribe
 //============================/////============================///
-onAuthStateChanged(auth, (user) => {
-    let publicElements = document.querySelectorAll("[data-onlogin='hide']");
-    let privateElements = document.querySelectorAll("[data-onlogin='show']");
+// onAuthStateChanged(auth, (user) => {
+//     let publicElements = document.querySelectorAll("[data-onlogin='hide']");
+//     let privateElements = document.querySelectorAll("[data-onlogin='show']");
 
 
-    if (user) {
-        const uid = user.uid;
+//     if (user) {
+//         const uid = user.uid;
 
-        setUserProfileAttributes(uid); 
-        privateElements.forEach(function(element) {
-            element.style.display = "initial";
-        });
-        publicElements.forEach(function(element) {
-            element.style.display = "none";
-        });
-        console.log(`The current user's UID is equal to ${uid}`);
+//         setUserProfileAttributes(uid); 
+//         privateElements.forEach(function(element) {
+//             element.style.display = "initial";
+//         });
+//         publicElements.forEach(function(element) {
+//             element.style.display = "none";
+//         });
+//         console.log(`The current user's UID is equal to ${uid}`);
         
-        // Check email verification
-        checkEmailVerification(user);
-    } else {
-        publicElements.forEach(function(element) {
-            element.style.display = "initial";
-        });
-        privateElements.forEach(function(element) {
-            element.style.display = "none";
-        });
-    }
-});
+//         // Check email verification
+//         checkEmailVerification(user);
+//     } else {
+//         publicElements.forEach(function(element) {
+//             element.style.display = "initial";
+//         });
+//         privateElements.forEach(function(element) {
+//             element.style.display = "none";
+//         });
+//     }
+// });
 
 
 //if (!user.emailVerified) {
@@ -467,3 +467,87 @@ onAuthStateChanged(auth, (user) => {
      //   window.location.href = '/app/verification'
    // return; // Prevent further execution
 //}
+
+
+
+let unsubscribeListener;
+
+async function setUserProfileAttributes(uid) {
+    const auth = getAuth();
+    const user = auth.currentUser; // Get the currently signed-in user
+    let userEmail = user ? user.email : ""; // Get the user's email from authentication
+
+    try {
+        const userDocRef = doc(firestore, "users", uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+            const userProfile = userDoc.data();
+
+            // Set attributes on the elements you want to update
+            const nameElement = document.querySelector('[data-ms-doc="name"]');
+            const profilePicElement = document.querySelector('[data-ms-doc="profilepicurl"]');
+            const emailElement = document.querySelector('[data-ms-doc="email"]');
+            const bioElement = document.querySelector('[data-ms-doc="bio"]');
+
+            if (nameElement) {
+                nameElement.setAttribute('firebase-ms-doc', userProfile.name || "");
+            }
+
+            if (profilePicElement) {
+                profilePicElement.setAttribute('firebase-ms-doc', userProfile.profilePicUrl || ""); 
+            }
+
+            if (emailElement) {
+                emailElement.setAttribute('firebase-ms-doc', userProfile.email || userEmail || ""); 
+            }
+
+            if (bioElement) {
+                bioElement.setAttribute('firebase-ms-doc', userProfile.bio || ""); 
+            }
+
+            console.log('User profile attributes set successfully');
+
+            // Unsubscribe from the listener as the profile is now available
+            if (unsubscribeListener) {
+                unsubscribeListener();
+                unsubscribeListener = null; // Clear the listener reference
+            }
+        } else {
+            console.error("User profile does not exist");
+            const emailElement = document.querySelector('[data-ms-doc="email"]');
+            if (emailElement) {
+                emailElement.setAttribute('firebase-ms-doc', userEmail || ""); // Use email from auth
+            }
+            // Continue listening for changes
+        }
+    } catch (error) {
+        console.error("Error fetching user profile:", error);
+    }
+}
+
+// Function to start listening for user profile changes
+function listenForUserProfile(uid) {
+    const userDocRef = doc(firestore, "users", uid);
+
+    unsubscribeListener = onSnapshot(userDocRef, (doc) => {
+        if (doc.exists()) {
+            setUserProfileAttributes(uid);
+        } else {
+            console.error("User profile does not exist, continuing to listen.");
+            // Here, you can set the email as before, but you might want to continue listening
+            const auth = getAuth();
+            const user = auth.currentUser;
+            let userEmail = user ? user.email : "";
+            const emailElement = document.querySelector('[data-ms-doc="email"]');
+            if (emailElement) {
+                emailElement.setAttribute('firebase-ms-doc', userEmail || ""); // Use email from auth
+            }
+        }
+    }, (error) => {
+        console.error("Error listening to user profile:", error);
+    });
+}
+
+// Call this function with the user's UID to start listening
+listenForUserProfile('user_uid_here');
