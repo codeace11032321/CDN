@@ -1,3 +1,4 @@
+
 //============================/////============================/////============================///
 //                                   auth version 9 by: marjooo
 //  added : email verification, onboarding function, redirect user, gated content|re-structured
@@ -366,7 +367,6 @@ async function setUserProfileAttributes(uid) {
             const profilePicElement = document.querySelector('[data-ms-doc="profilepicurl"]');
             const emailElement = document.querySelector('[data-ms-doc="email"]');
             const bioElement = document.querySelector('[data-ms-doc="bio"]');
-            const navprofileElement = document.querySelector('[data-ms-doc="nav-profile"]');
 
             if (nameElement) {
                 nameElement.textContent = userProfile.name || ""; // Update text content
@@ -376,9 +376,7 @@ async function setUserProfileAttributes(uid) {
                 profilePicElement.src = userProfile.pictureUrl || ""; // Set image source
             }
 
-            if (navprofileElement) {
-                profilePicElement.style.backgroundImage = `url(${userProfile.pictureUrl || ""})`; // Set background image
-            }
+        
 
             if (emailElement) {
                 emailElement.textContent = userProfile.email || ""; // Update text content
@@ -396,7 +394,5 @@ async function setUserProfileAttributes(uid) {
         console.error("Error fetching user profile:", error);
     }
 }
-
-
 
 

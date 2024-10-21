@@ -1,3 +1,6 @@
+
+
+
 //============================/////============================/////============================///
 //                                   auth version 9 by: marjooo
 //  added : email verification, onboarding function, redirect user, gated content|re-structured
@@ -277,11 +280,6 @@ function handleOnboardingSubmit(e) {
     onboardingForm.addEventListener('submit', handleOnboardingSubmit); // Attach to form submission
     });
 }
-
-document.addEventListener('DOMContentLoaded', function () {
-    const submitButton = document.getElementById('onboarding-submit');
-    submitButton.addEventListener('click', handleOnboardingSubmit);
-});
 
 
 //============================/////============================///
