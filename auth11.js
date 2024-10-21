@@ -454,13 +454,14 @@ onAuthStateChanged(auth, (user) => {
             element.style.display = "none";
         });
     }
+
+
+    if (!user.emailVerified) {
+    console.log("Email not verified. Redirecting to email verification...");
+        window.location.href = '/app/verification'
+    }
+    
 });
-
-
-if (!user.emailVerified) {
-   console.log("Email not verified. Redirecting to email verification...");
-       window.location.href = '/app/verification'
-}
 
 
 
