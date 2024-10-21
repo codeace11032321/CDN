@@ -129,6 +129,9 @@ function handleSignUp(e) {
 //============================/////============================///
 // Handle sign-in
 //============================/////============================///
+//============================/////============================///
+// Handle sign-in
+//============================/////============================///
 function handleSignIn(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -141,34 +144,32 @@ function handleSignIn(e) {
             const user = userCredential.user;
             console.log('User logged in: ' + user.email);
 
-            if (user.emailVerified) {
-                console.log("Email verified. Access granted.");
-                window.location.href = '/';
-            } else {
-                console.log("Email not verified.");
-                const uid = user.uid;
+            // Ensure user is authenticated
+            if (user) {
+                if (user.emailVerified) {
+                    console.log("Email verified. Access granted.");
+                    window.location.href = '/';
+                } else {
+                    console.log("Email not verified.");
+                    const uid = user.uid;
 
-                // Retrieve user profile from Firestore to check if name exists
-                getDoc(doc(firestore, "users", uid)).then((docSnapshot) => {
-                    if (docSnapshot.exists()) {
-                        const userProfile = docSnapshot.data();
-                        if (!userProfile.name) {
-                            window.location.href = '/app/onboarding'; // Redirect to onboarding if name is not set
+                    // Retrieve user profile from Firestore to check if name exists
+                    getDoc(doc(firestore, "users", uid)).then((docSnapshot) => {
+                        if (docSnapshot.exists()) {
+                            const userProfile = docSnapshot.data();
+                            if (!userProfile.name) {
+                                window.location.href = '/app/onboarding'; // Redirect to onboarding if name is not set
+                            } else {
+                                window.location.href = '/app/verification'; // Redirect to verification if name exists
+                            }
                         } else {
-                            window.location.href = '/app/verification'; // Redirect to verification if name exists
+                            // If the user profile doesn't exist, redirect to onboarding
+                            window.location.href = '/app/onboarding';
                         }
-                    } else {
-                        // If the user profile doesn't exist, redirect to onboarding
-                        window.location.href = '/app/onboarding';
-                    }
-                });
-            }
-
-            // This part may be redundant due to the previous logic
-            if (currentPath !== '/app/verification') {
-                window.location.href = '/app/verification';
-            } else {
-                console.log("Modal not available. Skipping email verification UI.");
+                    }).catch((error) => {
+                        console.error("Error retrieving user profile:", error);
+                    });
+                }
             }
         })
         .catch((error) => {
@@ -204,6 +205,7 @@ function sendVerificationEmail() {
 
 //future update!! : add a notification when the email is verified
 //============================/////============================///
+// Function to check email verification
 function checkEmailVerification(user) {
     const modalVerification = document.getElementById("email-verification-modal");
 
@@ -224,7 +226,7 @@ function checkEmailVerification(user) {
     }
 
     // Listener function
-    const unsubscribe = firebase.auth().onAuthStateChanged(async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
         if (currentUser) {
             // Reload user data to get the updated email verification status
             await currentUser.reload();
@@ -235,6 +237,7 @@ function checkEmailVerification(user) {
     // Initial check
     checkVerification();
 }
+
 
 
 //============================/////============================///
@@ -300,9 +303,9 @@ async function handleOnboarding(uid) {
     }
 
     // If no profilePicUrl found, you can keep the default or handle accordingly
-    if (!pictureUrl) {
-        pictureUrl = pictureUrlInput.value; // Use the value from the input if profilePicUrl is not available
-    }
+    // if (!pictureUrl) {
+    //     pictureUrl = pictureUrlInput.value; // Use the value from the input if profilePicUrl is not available
+    // }
 
     const userProfile = {
         name: name,
