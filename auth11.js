@@ -153,34 +153,62 @@ function handleSignUp(e) {
 
 
 
-    
     createUserWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
+    .then(async (userCredential) => {
         const user = userCredential.user;
         console.log('User successfully created: ' + user.email);
         sendVerificationEmail(); // Send verification email after sign-up
-        // Redirect to onboarding page
 
-        
+        // Prepare user data for Firestore
+        const userProfile = {
+            email: user.email,
+            createdAt: new Date(),
+            // Add any other default fields you want
+        };
 
+        try {
+            // Write user email to Firestore
+            await setDoc(doc(firestore, "users", user.uid), userProfile);
+            console.log("User email added to Firestore successfully!");
 
-        user.getIdToken().then((token) => {
-        // Redirect to onboarding page with the token
-        window.location.href = `/app/onboarding?authtoken=${token}`;
-    });
+            // Redirect to onboarding page with token
+            user.getIdToken().then((token) => {
+                window.location.href = `/app/onboarding?authtoken=${token}&uid=${user.uid}`;
+            });
+        } catch (error) {
+            console.error("Error adding user email to Firestore:", error);
+        }
     })
     .catch((error) => {
-        const errorMessage = error.message;
-        var errorText = document.getElementById('signup-error-message');
-        console.log(errorMessage);
-        if (errorText) {
-            errorText.innerHTML = errorMessage;
-        }
+        console.error("Error creating user: ", error);
     });
+
+
+
+//     createUserWithEmailAndPassword(auth, email, password)
+//     .then((userCredential) => {
+//         const user = userCredential.user;
+//         console.log('User successfully created: ' + user.email);
+//         sendVerificationEmail(); // Send verification email after sign-up
+//         // Redirect to onboarding page
+
+//         user.getIdToken().then((token) => {
+//         // Redirect to onboarding page with the token
+//         window.location.href = `/app/onboarding?authtoken=${token}`;
+//     });
+//     })
+//     .catch((error) => {
+//         const errorMessage = error.message;
+//         var errorText = document.getElementById('signup-error-message');
+//         console.log(errorMessage);
+//         if (errorText) {
+//             errorText.innerHTML = errorMessage;
+//         }
+//     });
 
 
     
-}
+// }
 
 //============================/////============================///
 // Handle sign-in / login
@@ -198,6 +226,7 @@ function handleSignIn(e) {
         .then((userCredential) => {
             const user = userCredential.user;
             console.log('User logged in: ' + user.email);
+            
 
     
         if (user.emailVerified) {
@@ -381,50 +410,93 @@ async function handleOnboarding(uid) {
 //============================/////============================///
 
 
-// async function setUserProfileAttributes(uid) {
-//     try {
-//         const userDocRef = doc(firestore, "users", uid);
-//         const userDoc = await getDoc(userDocRef);
+async function setUserProfileAttributes(uid) {
+    try {
+        const userDocRef = doc(firestore, "users", uid);
+        const userDoc = await getDoc(userDocRef);
 
-//         if (userDoc.exists()) {
-//             const userProfile = userDoc.data();
+        if (userDoc.exists()) {
+            const userProfile = userDoc.data();
 
-//             // Set attributes on the elements you want to update
-//             const nameElement = document.querySelector('[data-ms-doc="name"]');
-//             const profilePicElement = document.querySelector('[data-ms-doc="profilepicurl"]');
-//             const emailElement = document.querySelector('[data-ms-doc="email"]');
-//             const bioElement = document.querySelector('[data-ms-doc="bio"]');
+            // Set attributes on the elements you want to update
+            const nameElement = document.querySelector('[data-ms-doc="name"]');
+            const profilePicElement = document.querySelector('[data-ms-doc="profilepicurl"]');
+            const emailElement = document.querySelector('[data-ms-doc="email"]');
+            const bioElement = document.querySelector('[data-ms-doc="bio"]');
 
-//             if (nameElement) {
-//                 nameElement.setAttribute('firebase-ms-doc', userProfile.name || "");
-//             }
+            if (nameElement) {
+                nameElement.setAttribute('firebase-ms-doc', userProfile.name || "");
+            }
 
-//             if (profilePicElement) {
-//                 profilePicElement.setAttribute('firebase-ms-doc', userProfile.profilePicUrl || ""); 
-//             }
+            if (profilePicElement) {
+                profilePicElement.setAttribute('firebase-ms-doc', userProfile.profilePicUrl || ""); 
+            }
 
-//             if (emailElement) {
-//                 emailElement.setAttribute('firebase-ms-doc', userProfile.email || ""); 
-//             }
+            if (emailElement) {
+                emailElement.setAttribute('firebase-ms-doc', userProfile.email || ""); 
+            }
 
-//             if (bioElement) {
-//                 bioElement.setAttribute('firebase-ms-doc', userProfile.bio || ""); 
-//             }
+            if (bioElement) {
+                bioElement.setAttribute('firebase-ms-doc', userProfile.bio || ""); 
+            }
 
 
-//             console.log('User profile attributes set successfully');
-//         } else {
-//             console.error("User profile does not exist");
-//         }
-//     } catch (error) {
-//         console.error("Error fetching user profile:", error);
-//     }
-// }
+            console.log('User profile attributes set successfully');
+        } else {
+            console.error("User profile does not exist");
+        }
+    } catch (error) {
+        console.error("Error fetching user profile:", error);
+    }
+}
 
 
 //============================/////============================///
 // Manage user authentication state
+
+
+//   const unsubscribeAuthState = onAuthStateChanged(auth, (user) => {
+    //existing logic here
+//   });
+
+// Call unsubscribe
 //============================/////============================///
+onAuthStateChanged(auth, (user) => {
+    let publicElements = document.querySelectorAll("[data-onlogin='hide']");
+    let privateElements = document.querySelectorAll("[data-onlogin='show']");
+
+
+    if (user) {
+        const uid = user.uid;
+
+        setUserProfileAttributes(uid); 
+        privateElements.forEach(function(element) {
+            element.style.display = "initial";
+        });
+        publicElements.forEach(function(element) {
+            element.style.display = "none";
+        });
+        console.log(`The current user's UID is equal to ${uid}`);
+        
+        // Check email verification
+        checkEmailVerification(user);
+    } else {
+        publicElements.forEach(function(element) {
+            element.style.display = "initial";
+        });
+        privateElements.forEach(function(element) {
+            element.style.display = "none";
+        });
+    }
+});
+
+
+if (!user.emailVerified) {
+   console.log("Email not verified. Redirecting to email verification...");
+       window.location.href = '/app/verification'
+   return; // Prevent further execution
+}
+
 
 
 let unsubscribeListener;
