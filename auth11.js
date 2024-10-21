@@ -114,28 +114,28 @@ async function updateProfilePicture() {
 //============================/////============================///
 // Handle custom sign-
 //============================/////============================///
-async function handleCustomSignUp(token) {
-    const customAuth = getAuth();
+// async function handleCustomSignUp(token) {
+//     const customAuth = getAuth();
     
-    try {
-        const userCredential = await signInWithCustomToken(customAuth, token);
-        const user = userCredential.user;
+//     try {
+//         const userCredential = await signInWithCustomToken(customAuth, token);
+//         const user = userCredential.user;
 
-        // Use user.email instead of customAuth.currentUser.email
-        messageElement.textContent = user.email;
+//         // Use user.email instead of customAuth.currentUser.email
+//         messageElement.textContent = user.email;
 
-        // Optionally, store user email in Firestore here if needed
-        await setDoc(doc(firestore, "users", user.uid), {
-            email: user.email,
-            createdAt: new Date(),
-        });
-    } catch (error) {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        // Handle the error (e.g., display it)
-        console.error(`Error (${errorCode}): ${errorMessage}`);
-    }
-}
+//         // Optionally, store user email in Firestore here if needed
+//         await setDoc(doc(firestore, "users", user.uid), {
+//             email: user.email,
+//             createdAt: new Date(),
+//         });
+//     } catch (error) {
+//         const errorCode = error.code;
+//         const errorMessage = error.message;
+//         // Handle the error (e.g., display it)
+//         console.error(`Error (${errorCode}): ${errorMessage}`);
+//     }
+// }
 
 
 
@@ -160,8 +160,10 @@ function handleSignUp(e) {
         console.log('User successfully created: ' + user.email);
         sendVerificationEmail(); // Send verification email after sign-up
         // Redirect to onboarding page
-        handleCustomSignUp();
+
         
+
+
         user.getIdToken().then((token) => {
         // Redirect to onboarding page with the token
         window.location.href = `/app/onboarding?authtoken=${token}`;
