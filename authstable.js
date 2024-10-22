@@ -1,3 +1,6 @@
+
+
+
 //============================/////============================/////============================///
 //                                   auth version 9 by: marjooo
 //  added : email verification, onboarding function, redirect user, gated content|re-structured
@@ -114,7 +117,7 @@ function handleSignUp(e) {
         console.log('User successfully created: ' + user.email);
         sendVerificationEmail(); // Send verification email after sign-up
         // Redirect to onboarding page
-        window.location.href = `/verification?authtoken=${userCredential.user.refreshToken}`;
+        window.location.href = `/app/onboarding?authtoken=${userCredential.user.refreshToken}`;
 
 
     })
@@ -396,7 +399,6 @@ async function setUserProfileAttributes(uid) {
         console.error("Error fetching user profile:", error);
     }
 }
-
 
 
 
